@@ -97,4 +97,35 @@ body {
 @media (max-width: 576px) {
     .hero h1 { font-size: 1.6rem; }
     .btn { padding: 10px 20px; font-size: 14px; }
+    /* Add to the bottom of your CSS */
+/* ----- DASHBOARD COMPACT ----- */
+.dashboard .card-body {
+    padding: 15px !important;
+}
+
+.dashboard .py-3 {
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+}
+
+.dashboard .display-6 {
+    font-size: 1.5rem !important;
+}
+
+.dashboard h3 {
+    font-size: 1.3rem !important;
+}
+
+.dashboard h5 {
+    font-size: 1rem !important;
+}
+
+.table-sm {
+    font-size: 0.85rem;
+}
+
+.dashboard .btn-sm {
+    padding: 5px 15px;
+    font-size: 0.85rem;
+}
 }
