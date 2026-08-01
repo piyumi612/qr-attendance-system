@@ -1,0 +1,100 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f0f4f8;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ----- HERO SECTION ----- */
+.hero {
+    background: linear-gradient(135deg, #2c3e7a 0%, #4a6fa5 100%);
+    color: white;
+    padding: 80px 0;
+}
+
+.hero h1 {
+    font-size: 3rem;
+    font-weight: 800;
+}
+
+/* ----- BUTTONS ----- */
+.btn-primary {
+    background: linear-gradient(135deg, #2c3e7a 0%, #4a6fa5 100%);
+    border: none;
+    border-radius: 50px;
+    padding: 12px 35px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 25px rgba(44, 62, 122, 0.4);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: white;
+    border: 2px solid white;
+    border-radius: 50px;
+    padding: 12px 35px;
+    font-weight: 600;
+}
+
+.btn-secondary:hover {
+    background: white;
+    color: #2c3e7a;
+}
+
+/* ----- CARDS ----- */
+.card {
+    border: none;
+    border-radius: 15px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+}
+
+/* ----- AUTH PAGES (Login/Register) ----- */
+.auth-section {
+    padding: 60px 0;
+    flex: 1;
+}
+
+.auth-section .card {
+    border-radius: 20px;
+}
+
+/* ----- DASHBOARD ----- */
+.dashboard .card {
+    border-radius: 12px;
+}
+
+.dashboard .badge {
+    padding: 5px 14px;
+    font-weight: 600;
+}
+
+/* ----- FOOTER ----- */
+.footer {
+    background: #1a2332;
+    color: rgba(255,255,255,0.7);
+    padding: 25px 0;
+    margin-top: auto;
+}
+
+/* ----- RESPONSIVE (Mobile/Tablet) ----- */
+@media (max-width: 768px) {
+    .hero { padding: 50px 0; }
+    .hero h1 { font-size: 2rem; }
+    .auth-section .card { margin: 0 15px; }
+}
+
+@media (max-width: 576px) {
+    .hero h1 { font-size: 1.6rem; }
+    .btn { padding: 10px 20px; font-size: 14px; }
+}
