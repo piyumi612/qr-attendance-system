@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($stmt->rowCount() > 0) {
             $error = 'Email already registered.';
         } else {
-            $hashed = password_hash($password, PASSWORD_DEFAULT);
+            $hashed = password_hash($password,  PASSWORD_BCRYPT);
             $stmt = $conn->prepare("INSERT INTO users (username, email, password, role) VALUES (?, ?, ? ,?)");
             if ($stmt->execute([$username, $email, $hashed ,$role])) {
                 $success = 'Registration successful! Redirecting to login...';
