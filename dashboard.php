@@ -12,9 +12,70 @@ $user_id = getUserId();
 $username = getUsername();
 $role = getUserRole();
 
-$stmt = $conn->prepare("SELECT * FROM attendance WHERE student_id = ? ORDER BY scan_time DESC LIMIT 10");
-$stmt->execute([$user_id]);
+// Get attendance history based on role
+if ($role === 'lecturer') {
+// Lecturer sees only attendance records for THEIR OWN sessions
+    $stmt = $conn->prepare("
+        SELECT a.*, u.username 
+        FROM attendance a 
+        JOIN users u ON a.student_id = u.id 
+        JOIN sessions s ON a.qr_code_data = s.qr_code 
+        WHERE s.lecturer_id = ? 
+        ORDER BY a.scan_time DESC 
+        LIMIT 10
+    ");
+    $stmt->execute([$user_id]);
+}
+else {
+    $stmt = $conn->prepare("SELECT * FROM attendance WHERE student_id = ? ORDER BY scan_time DESC LIMIT 10");
+    $stmt->execute([$user_id]);
+}
 $attendance_records = $stmt->fetchAll();
+
+//CALCULATE ATTENDANCE STATS
+if ($role === 'student') {
+    // For student: total attendance, present count, percentage
+    $stmt = $conn->prepare("SELECT COUNT(*) as total FROM attendance WHERE student_id = ?");
+    $stmt->execute([$user_id]);
+    $total_records = $stmt->fetch()['total'];
+
+    $stmt = $conn->prepare("SELECT COUNT(*) as present FROM attendance WHERE student_id = ? AND status = 'Present'");
+    $stmt->execute([$user_id]);
+    $present_records = $stmt->fetch()['present'];
+
+    $attendance_percentage = $total_records > 0 ? round(($present_records / $total_records) * 100) : 0;
+    $total_sessions = $total_records;
+} 
+else {
+// For lecturer: total sessions and total attendance for their own sessions
+    $stmt = $conn->prepare("SELECT COUNT(*) as total FROM sessions WHERE lecturer_id = ?");
+    $stmt->execute([$user_id]);
+    $total_sessions = $stmt->fetch()['total'];
+
+// Count total attendance records for THIS lecturer's sessions
+    $stmt = $conn->prepare("
+        SELECT COUNT(*) as total 
+        FROM attendance a 
+        JOIN sessions s ON a.qr_code_data = s.qr_code 
+        WHERE s.lecturer_id = ?
+    ");
+    $stmt->execute([$user_id]);
+    $total_records = $stmt->fetch()['total'];
+
+// Count Present records for THIS lecturer's sessions
+    $stmt = $conn->prepare("
+        SELECT COUNT(*) as present 
+        FROM attendance a 
+        JOIN sessions s ON a.qr_code_data = s.qr_code 
+        WHERE s.lecturer_id = ? AND a.status = 'Present'
+    ");
+    $stmt->execute([$user_id]);
+    $present_records = $stmt->fetch()['present'];
+
+// Attendance % = Present records / Total records
+    $attendance_percentage = $total_records > 0 ? round(($present_records / $total_records) * 100) : 0;
+}
+
 
 $qr_code = '';
 if ($role === 'lecturer' && isset($_POST['generate_qr'])) {
@@ -89,15 +150,27 @@ if ($role === 'student' && isset($_POST['scan_qr'])) {
                             <p class="text-muted small"><?php echo ucfirst($role); ?></p>
                             <hr>
                             <div class="row">
-                                <div class="col-6"><h6>85%</h6><small>Attendance</small></div>
-                                <div class="col-6"><h6>12</h6><small>Sessions</small></div>
+                                <div class="col-6">
+                                    <h6 class="<?php echo $attendance_percentage >= 75 ? 'text-success' : ($attendance_percentage >= 50 ? 'text-warning' : 'text-danger'); ?>">
+                                        <?php echo $attendance_percentage; ?>%
+                                    </h6>
+                                    <small>Attendance</small>
+                                </div>
+                                <div class="col-6">
+                                   <h6><?php echo $total_sessions; ?></h6>
+                                   <small><?php echo $role === 'lecturer' ? 'Sessions' : 'Sessions'; ?></small>
+                                </div>
                             </div>
                             <hr>
                             <h6>Quick Links</h6>
-                            <ul class="list-unstyled text-start">
-                                <li class="py-1"><i class="bi bi-qr-code text-primary"></i> <a href="#">Scan QR</a></li>
-                                <li class="py-1"><i class="bi bi-clock-history text-primary"></i> <a href="#">History</a></li>
-                            </ul>
+                                <ul class="list-unstyled text-start">
+                                    <?php if ($role === 'student'): ?>
+                                       <li class="py-1"><i class="bi bi-qr-code text-primary"></i> <a href="#scan-section">Scan QR</a></li>
+                                    <?php else: ?>
+                                       <li class="py-1"><i class="bi bi-qr-code text-primary"></i> <a href="#generate-section">Generate QR</a></li>
+                                    <?php endif; ?>
+                                    <li class="py-1"><i class="bi bi-clock-history text-primary"></i> <a href="#history-section">History</a></li>
+                                </ul>
                         </div>
                     </div>
                 </div>
@@ -126,7 +199,7 @@ if ($role === 'student' && isset($_POST['scan_qr'])) {
                     <?php endif; ?>
 
                     <?php if ($role === 'lecturer'): ?>
-                    <div class="card shadow-sm mb-4">
+                    <div class="card shadow-sm mb-4" id="generate-section">
                         <div class="card-body text-center">
                             <h5><i class="bi bi-plus-circle text-primary"></i> Generate QR Code</h5>
                             <form method="POST" action="">
@@ -141,30 +214,57 @@ if ($role === 'student' && isset($_POST['scan_qr'])) {
                     </div>
                     <?php endif; ?>
 
-                    <div class="card shadow-sm">
+                    <div class="card shadow-sm" id="history-section">
                         <div class="card-body">
-                            <h5><i class="bi bi-clock-history text-primary"></i> Recent Attendance</h5>
+                            <h5><i class="bi bi-clock-history text-primary"></i>
+                            <?php
+                                if ($role === 'lecturer') {
+                                    echo 'Class Attendance Summary';
+                                } else {
+                                    echo 'My Attendance History';
+                                }  
+                                ?>
+                            </h5>
                             <div class="table-responsive">
                                 <table class="table table-hover">
                                     <thead>
-                                        <tr><th>Date</th><th>Time</th><th>Status</th></tr>
+                                        <tr>
+                                            <?php if ($role === 'lecturer'): ?>
+                                                <th>Student</th>
+                                            <?php endif; ?>
+                                            <th>Date</th>
+                                            <th>Time</th>
+                                            <th>Status</th>
+                                        </tr>
                                     </thead>
                                     <tbody>
                                         <?php if (count($attendance_records) > 0): ?>
                                             <?php foreach ($attendance_records as $record): ?>
-                                            <tr>
+                                           <tr>
+                                                <?php if ($role === 'lecturer'): ?>
+                                                    <td><?php echo htmlspecialchars($record['username'] ?? 'Unknown'); ?></td>
+                                                <?php endif; ?>
                                                 <td><?php echo date('d M Y', strtotime($record['scan_time'])); ?></td>
                                                 <td><?php echo date('h:i A', strtotime($record['scan_time'])); ?></td>
-                                                <td><span class="badge bg-<?php echo $record['status'] === 'Present' ? 'success' : 'danger'; ?>"><?php echo $record['status']; ?></span></td>
+                                                <td>
+                                                    <span class="badge bg-<?php echo $record['status'] === 'Present' ? 'success' : 'danger'; ?>">
+                                                        <?php echo $record['status']; ?>
+                                                    </span>
+                                                </td>
                                             </tr>
                                             <?php endforeach; ?>
                                         <?php else: ?>
-                                            <tr><td colspan="3" class="text-center text-muted">No attendance records found</td></tr>
+                                            <tr>
+                                                <td colspan="<?php echo $role === 'lecturer' ? '4' : '3'; ?>" class="text-center text-muted">
+                                                    No attendance records found
+                                                </td>
+                                            </tr>
                                         <?php endif; ?>
                                     </tbody>
                                 </table>
+                    
                             </div>
-                            <button class="btn btn-danger btn-sm mt-2"><i class="bi bi-file-earmark-pdf"></i> Download PDF</button>
+                            <button  onclick="window.print()" class="btn btn-danger btn-sm mt-2"><i class="bi bi-file-earmark-pdf"></i> Download PDF</button>
                         </div>
                     </div>
                 </div>
@@ -177,5 +277,12 @@ if ($role === 'student' && isset($_POST['scan_qr'])) {
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <style>
+/*scrolling option*/
+        html{
+            scroll-behavior: smooth;
+        }
+    </style>
 </body>
 </html>

@@ -80,11 +80,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <label class="form-label">Password</label>
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                                        <input type="password" name="password" class="form-control" placeholder="Enter your password" required>
+                                        <input type="password" name="password" id="loginPassword" class="form-control" placeholder="Enter your password" required>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('loginPassword', 'loginEye')">
+                                         <i class="bi bi-eye" id="loginEye"></i>
+                                        </button>
+                                        
                                     </div>
                                 </div>
                                 <button type="submit" class="btn btn-primary w-100 py-2">Login</button>
                             </form>
+                            <!-- FORGOT PASSWORD LINK -->
+                            <div class="text-center mt-3">
+                                <a href="forgot_password.php" class="text-muted small">Forgot Password?</a>
+                            </div>
                             <p class="text-center mt-3">Don't have an account? <a href="register.php">Register here</a></p>
                         </div>
                     </div>
@@ -94,5 +102,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </section>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/app.js"></script>
 </body>
 </html>

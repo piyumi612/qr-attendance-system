@@ -22,5 +22,5 @@ A web application that uses QR codes to manage student attendance efficiently.
 4. Run on XAMPP/WAMP
 
 ## Team Members
-- ITT/2024/075
-- ITT/2024/055
+- ITT/2024/075 - R.M.P.Nisansala
+- ITT/2024/055 - L.P.M.Kavindi

@@ -9,6 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = sanitize($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
     $confirm = $_POST['confirm_password'] ?? '';
+    $role = $_POST['role']  ?? 'student';
 
     if (empty($username) || empty($email) || empty($password)) {
         $error = 'All fields are required.';
@@ -25,8 +26,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Email already registered.';
         } else {
             $hashed = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $conn->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
-            if ($stmt->execute([$username, $email, $hashed])) {
+            $stmt = $conn->prepare("INSERT INTO users (username, email, password, role) VALUES (?, ?, ? ,?)");
+            if ($stmt->execute([$username, $email, $hashed ,$role])) {
                 $success = 'Registration successful! Redirecting to login...';
                 header("Refresh:2; url=login.php");
             } else {
@@ -98,14 +99,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <label class="form-label">Password</label>
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                                        <input type="password" name="password" class="form-control" placeholder="Create password (min 6 chars)" required>
+                                        <input type="password" name="password" id="regPassword" class="form-control" placeholder="Create password (min 6 chars)" required>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('regPassword', 'regEye1')">
+                                            <i class="bi bi-eye" id="regEye1"></i>
+                                        </button>
                                     </div>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label">Confirm Password</label>
+                                <label class="form-label">Confirm Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-shield-lock"></i></span>
+                                    <input type="password" name="confirm_password" id="regConfirm" class="form-control" placeholder="Confirm your password" required>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('regConfirm', 'regEye2')">
+                                        <i class="bi bi-eye" id="regEye2"></i>
+                                    </button>
+                                    </div>
+                                </div>
+                                 
+                                <div class="mb-3">
+                                    <label class="form-label">Register As</label>
                                     <div class="input-group">
-                                        <span class="input-group-text"><i class="bi bi-shield-lock"></i></span>
-                                        <input type="password" name="confirm_password" class="form-control" placeholder="Confirm your password" required>
+                                         <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+                                         <select name="role" class="form-control" required>
+                                            <option value="student">Student</option>
+                                            <option value="lecturer">Lecturer</option>
+                                         </select>
                                     </div>
                                 </div>
                                 <button type="submit" class="btn btn-primary w-100 py-2">Register</button>
@@ -119,5 +137,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </section>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+     <script src="../js/app.js"></script>
 </body>
 </html> 

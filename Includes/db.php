@@ -36,4 +36,16 @@ function sanitize($input) {
 function validateEmail($email) {
     return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
 }
+
+function getUserId() {
+    return $_SESSION['user_id'] ?? null;
+}
+
+function getUsername() {
+    return $_SESSION['username'] ?? 'Guest';
+}
+
+function getUserRole() {
+    return $_SESSION['role'] ?? 'guest';
+}
 ?>
